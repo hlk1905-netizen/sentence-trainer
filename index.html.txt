@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentence Trainer</title>
+
+<style>
+body {
+  font-family: -apple-system;
+  background: #111;
+  color: #fff;
+  padding: 20px;
+}
+.level {
+  color: #4caf50;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.word {
+  display: inline-block;
+  margin: 4px;
+  padding: 6px 10px;
+  background: #222;
+  border-radius: 8px;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 10px;
+  border: none;
+}
+button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background: #4caf50;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="level" id="level"></div>
+
+<div id="sentence"></div>
+
+<input type="text" placeholder="Türkçe çevirini yaz...">
+
+<button onclick="nextSentence()">Yeni Cümle</button>
+
+<script>
+const sentences = [
+  {
+    level: "B1",
+    text: "I realized that silence is sometimes the best answer",
+    words: {
+      realized: "fark ettim",
+      silence: "sessizlik",
+      sometimes: "bazen",
+      answer: "cevap"
+    }
+  },
+  {
+    level: "C1",
+    text: "People often underestimate how much emotional fatigue affects decisions",
+    words: {
+      underestimate: "küçümsemek",
+      emotional: "duygusal",
+      fatigue: "yorgunluk",
+      affects: "etkiler",
+      decisions: "kararlar"
+    }
+  }
+];
+
+let index = 0;
+
+function render() {
+  document.getElementById("level").innerText = "Level: " + sentences[index].level;
+  const container = document.getElementById("sentence");
+  container.innerHTML = "";
+
+  sentences[index].text.split(" ").forEach(word => {
+    const clean = word.toLowerCase();
+    const span = document.createElement("span");
+    span.className = "word";
+    span.innerText = word;
+    span.onclick = () => {
+      alert(sentences[index].words[clean] || "Bu kelime için anlam yok");
+    };
+    container.appendChild(span);
+  });
+}
+
+function nextSentence() {
+  index = (index + 1) % sentences.length;
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
