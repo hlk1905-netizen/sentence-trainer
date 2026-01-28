@@ -1,108 +1,115 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentence Trainer</title>
-
-<style>
-body {
-  font-family: -apple-system;
-  background: #111;
-  color: #fff;
-  padding: 20px;
-}
-.level {
-  color: #4caf50;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-.word {
-  display: inline-block;
-  margin: 4px;
-  padding: 6px 10px;
-  background: #222;
-  border-radius: 8px;
-}
-input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  border-radius: 10px;
-  border: none;
-}
-button {
-  margin-top: 15px;
-  width: 100%;
-  padding: 12px;
-  background: #4caf50;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-}
-</style>
+  <meta charset="UTF-8">
+  <title>İngilizce Cümle Çalışma</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .level {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    .sentence {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="level" id="level"></div>
-
-<div id="sentence"></div>
-
-<input type="text" placeholder="Türkçe çevirini yaz...">
-
-<button onclick="nextSentence()">Yeni Cümle</button>
+<div class="card">
+  <div class="level" id="level">Seviye</div>
+  <div class="sentence" id="sentence">Butona bas</div>
+  <button onclick="newSentence()">Yeni Cümle</button>
+</div>
 
 <script>
 const sentences = [
-  {
-    level: "B1",
-    text: "I realized that silence is sometimes the best answer",
-    words: {
-      realized: "fark ettim",
-      silence: "sessizlik",
-      sometimes: "bazen",
-      answer: "cevap"
-    }
-  },
-  {
-    level: "C1",
-    text: "People often underestimate how much emotional fatigue affects decisions",
-    words: {
-      underestimate: "küçümsemek",
-      emotional: "duygusal",
-      fatigue: "yorgunluk",
-      affects: "etkiler",
-      decisions: "kararlar"
-    }
-  }
+  { text: "I started learning English last year.", level: "A2" },
+  { text: "She usually studies at night.", level: "A2" },
+  { text: "They moved to a new city recently.", level: "A2" },
+  { text: "He forgot to bring his keys.", level: "A2" },
+  { text: "We met by chance at the airport.", level: "A2" },
+
+  { text: "I am trying to improve my English every day.", level: "B1" },
+  { text: "She felt nervous before the interview.", level: "B1" },
+  { text: "He realized his mistake too late.", level: "B1" },
+  { text: "We decided to change our plans.", level: "B1" },
+  { text: "They managed to solve the problem.", level: "B1" },
+
+  { text: "Despite the difficulties, he kept going.", level: "B2" },
+  { text: "She gradually became more confident.", level: "B2" },
+  { text: "They refused to give up easily.", level: "B2" },
+  { text: "He was aware of the risks involved.", level: "B2" },
+  { text: "We struggled to find a solution.", level: "B2" },
+
+  { text: "She questioned the meaning of success.", level: "C1" },
+  { text: "He tends to overthink simple situations.", level: "C1" },
+  { text: "They failed to recognize the consequences.", level: "C1" },
+  { text: "We underestimated the impact of our choices.", level: "C1" },
+  { text: "She remained calm under pressure.", level: "C1" },
+
+  { text: "He acknowledged his responsibility.", level: "C2" },
+  { text: "They anticipated a significant change.", level: "C2" },
+  { text: "She articulated her thoughts clearly.", level: "C2" },
+  { text: "We encountered unexpected challenges.", level: "C2" },
+  { text: "He demonstrated remarkable patience.", level: "C2" },
+
+  { text: "She wondered if things could have been different.", level: "B2" },
+  { text: "He learned to accept uncertainty.", level: "B2" },
+  { text: "They adapted quickly to the new system.", level: "B1" },
+  { text: "We often ignore small warning signs.", level: "B1" },
+  { text: "She felt relieved after speaking honestly.", level: "B1" },
+
+  { text: "He struggled to express his emotions.", level: "B2" },
+  { text: "They questioned their long-term goals.", level: "C1" },
+  { text: "We assumed everything would be easy.", level: "B2" },
+  { text: "She reflected on her past decisions.", level: "C1" },
+  { text: "He avoided making the same mistake again.", level: "B1" },
+
+  { text: "They searched for meaning in daily routines.", level: "C1" },
+  { text: "We slowly built confidence through practice.", level: "B1" },
+  { text: "She refused to settle for less.", level: "B2" },
+  { text: "He learned patience through failure.", level: "B2" },
+  { text: "They realized growth takes time.", level: "B1" }
 ];
 
-let index = 0;
-
-function render() {
-  document.getElementById("level").innerText = "Level: " + sentences[index].level;
-  const container = document.getElementById("sentence");
-  container.innerHTML = "";
-
-  sentences[index].text.split(" ").forEach(word => {
-    const clean = word.toLowerCase();
-    const span = document.createElement("span");
-    span.className = "word";
-    span.innerText = word;
-    span.onclick = () => {
-      alert(sentences[index].words[clean] || "Bu kelime için anlam yok");
-    };
-    container.appendChild(span);
-  });
+function newSentence() {
+  const random = Math.floor(Math.random() * sentences.length);
+  document.getElementById("sentence").innerText = sentences[random].text;
+  document.getElementById("level").innerText = "Seviye: " + sentences[random].level;
 }
-
-function nextSentence() {
-  index = (index + 1) % sentences.length;
-  render();
-}
-
-render();
 </script>
 
 </body>
