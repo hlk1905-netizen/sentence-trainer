@@ -11,105 +11,177 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
     .card {
       background: #fff;
       padding: 25px;
       border-radius: 12px;
       width: 90%;
-      max-width: 420px;
+      max-width: 500px;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    .level {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 10px;
-    }
-    .sentence {
+    .level { font-size: 14px; color: #666; margin-bottom: 10px; }
+    #sentence {
       font-size: 20px;
-      margin-bottom: 20px;
+      margin: 20px 0;
+      line-height: 1.5;
+    }
+    .word {
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .word:hover { background: #e0f7fa; }
+    #translation-popup {
+      position: absolute;
+      background: #333;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 100;
+      max-width: 300px;
+      display: none;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
     }
     button {
-      padding: 12px 18px;
+      padding: 12px 24px;
       font-size: 16px;
       border: none;
       border-radius: 8px;
-      background: #007bff;
-      color: #fff;
       cursor: pointer;
+      margin: 10px;
     }
-    button:active {
-      transform: scale(0.98);
+    #new-btn { background: #007bff; color: white; }
+    #check-btn { background: #28a745; color: white; }
+    #result {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 15px;
+      min-height: 30px;
     }
+    .correct { color: #28a745; }
+    .wrong { color: #dc3545; }
   </style>
 </head>
 <body>
 
 <div class="card">
   <div class="level" id="level">Seviye</div>
-  <div class="sentence" id="sentence">Butona bas</div>
-  <button onclick="newSentence()">Yeni Cümle</button>
+  <div id="sentence">Butona bas</div>
+  <div id="translation-popup"></div>
+
+  <textarea id="user-translation" placeholder="Buraya Türkçe çevirini yaz..." rows="3"></textarea>
+  
+  <button id="new-btn" onclick="newSentence()">Yeni Cümle</button>
+  <button id="check-btn" onclick="checkTranslation()">Kontrol Et</button>
+  
+  <div id="result"></div>
 </div>
 
 <script>
+// LibreTranslate public instance (ücretsiz, rate limit olabilir)
+// Alternatif: https://libretranslate.de/translate
+const TRANSLATE_API = 'https://libretranslate.de/translate';
+
 const sentences = [
-  { text: "I started learning English last year.", level: "A2" },
-  { text: "She usually studies at night.", level: "A2" },
-  { text: "They moved to a new city recently.", level: "A2" },
-  { text: "He forgot to bring his keys.", level: "A2" },
-  { text: "We met by chance at the airport.", level: "A2" },
-
-  { text: "I am trying to improve my English every day.", level: "B1" },
-  { text: "She felt nervous before the interview.", level: "B1" },
-  { text: "He realized his mistake too late.", level: "B1" },
-  { text: "We decided to change our plans.", level: "B1" },
-  { text: "They managed to solve the problem.", level: "B1" },
-
-  { text: "Despite the difficulties, he kept going.", level: "B2" },
-  { text: "She gradually became more confident.", level: "B2" },
-  { text: "They refused to give up easily.", level: "B2" },
-  { text: "He was aware of the risks involved.", level: "B2" },
-  { text: "We struggled to find a solution.", level: "B2" },
-
-  { text: "She questioned the meaning of success.", level: "C1" },
-  { text: "He tends to overthink simple situations.", level: "C1" },
-  { text: "They failed to recognize the consequences.", level: "C1" },
-  { text: "We underestimated the impact of our choices.", level: "C1" },
-  { text: "She remained calm under pressure.", level: "C1" },
-
-  { text: "He acknowledged his responsibility.", level: "C2" },
-  { text: "They anticipated a significant change.", level: "C2" },
-  { text: "She articulated her thoughts clearly.", level: "C2" },
-  { text: "We encountered unexpected challenges.", level: "C2" },
-  { text: "He demonstrated remarkable patience.", level: "C2" },
-
-  { text: "She wondered if things could have been different.", level: "B2" },
-  { text: "He learned to accept uncertainty.", level: "B2" },
-  { text: "They adapted quickly to the new system.", level: "B1" },
-  { text: "We often ignore small warning signs.", level: "B1" },
-  { text: "She felt relieved after speaking honestly.", level: "B1" },
-
-  { text: "He struggled to express his emotions.", level: "B2" },
-  { text: "They questioned their long-term goals.", level: "C1" },
-  { text: "We assumed everything would be easy.", level: "B2" },
-  { text: "She reflected on her past decisions.", level: "C1" },
-  { text: "He avoided making the same mistake again.", level: "B1" },
-
-  { text: "They searched for meaning in daily routines.", level: "C1" },
-  { text: "We slowly built confidence through practice.", level: "B1" },
-  { text: "She refused to settle for less.", level: "B2" },
-  { text: "He learned patience through failure.", level: "B2" },
-  { text: "They realized growth takes time.", level: "B1" }
+  { text: "I started learning English last year.", level: "A2", tr: "Geçen yıl İngilizce öğrenmeye başladım." },
+  { text: "She usually studies at night.", level: "A2", tr: "O genellikle gece çalışır." },
+  // ... diğer cümlelerini buraya ekle, her birine "tr": "çeviri" ekle
+  // Örnek olarak 5 tane ekledim, sen hepsini doldurabilirsin veya boş bırakıp manuel yazdırabilirsin
+  { text: "They moved to a new city recently.", level: "A2", tr: "Yakın zamanda yeni bir şehre taşındılar." },
+  { text: "He forgot to bring his keys.", level: "A2", tr: "Anahtarlarını getirmeyi unuttu." },
+  { text: "We met by chance at the airport.", level: "A2", tr: "Havalimanında tesadüfen karşılaştık." },
+  // Tam listeni buraya kopyala, her objeye tr: "..." ekle
+  // Eğer çeviri yoksa boş bırak: tr: ""
 ];
+
+let currentSentence = null;
 
 function newSentence() {
   const random = Math.floor(Math.random() * sentences.length);
-  document.getElementById("sentence").innerText = sentences[random].text;
-  document.getElementById("level").innerText = "Seviye: " + sentences[random].level;
+  currentSentence = sentences[random];
+  
+  document.getElementById("level").innerText = "Seviye: " + currentSentence.level;
+  document.getElementById("user-translation").value = "";
+  document.getElementById("result").innerText = "";
+  
+  // Cümleyi kelime kelime tıklanabilir yap
+  const words = currentSentence.text.split(/\s+/);
+  let html = '';
+  words.forEach(word => {
+    // Noktalama temizle ama kelimeyi koru
+    const cleanWord = word.replace(/[.,!?;:'"()]/g, '');
+    html += `<span class="word" onclick="showWordTranslation('${cleanWord}')">${word} </span>`;
+  });
+  document.getElementById("sentence").innerHTML = html.trim();
 }
+
+async function showWordTranslation(word) {
+  if (!word) return;
+  
+  try {
+    const response = await fetch(TRANSLATE_API, {
+      method: 'POST',
+      body: JSON.stringify({
+        q: word,
+        source: 'en',
+        target: 'tr',
+        format: 'text'
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await response.json();
+    const translation = data.translatedText || 'Çeviri bulunamadı';
+    
+    const popup = document.getElementById("translation-popup");
+    popup.innerText = `${word} → ${translation}`;
+    popup.style.display = 'block';
+    
+    // Fareyi kelimeden çekince gizle
+    setTimeout(() => { popup.style.display = 'none'; }, 3000);
+  } catch (err) {
+    console.error(err);
+    alert('Kelime çevirisi alınamadı (API sorunu olabilir).');
+  }
+}
+
+function checkTranslation() {
+  if (!currentSentence) return;
+  
+  const userText = document.getElementById("user-translation").value.trim().toLowerCase();
+  const correctText = (currentSentence.tr || "").trim().toLowerCase();
+  
+  const resultEl = document.getElementById("result");
+  
+  if (userText === correctText && correctText !== "") {
+    resultEl.innerText = "Doğru! 🎉";
+    resultEl.className = "correct";
+  } else if (correctText === "") {
+    resultEl.innerText = "Bu cümlenin çevirisi henüz eklenmemiş.";
+    resultEl.className = "";
+  } else {
+    resultEl.innerText = `Yanlış. Doğru cevap: ${currentSentence.tr}`;
+    resultEl.className = "wrong";
+  }
+}
+
+// Sayfa yüklenince ilk cümleyi göster
+window.onload = newSentence;
 </script>
 
 </body>
