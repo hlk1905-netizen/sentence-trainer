@@ -1,0 +1,1 @@
+ingilizce cümle
